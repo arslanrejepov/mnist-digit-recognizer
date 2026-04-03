@@ -114,3 +114,10 @@ class LikeOut(BaseModel):
     message: str
     post_id: int
     like_count: int
+
+class CommentResponse(BaseModel):
+    id: int
+    content: str
+
+    class Config:
+        from_attributes = True  # if using Pydantic v2
