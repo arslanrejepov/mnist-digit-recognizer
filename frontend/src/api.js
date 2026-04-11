@@ -1,6 +1,6 @@
 const BASE = '/api'
 
-// ─── Token helpers ───────────────────────────────────────────────
+// ─── Token helpers ────────────────────────────────────────────────
 export const getToken = () => localStorage.getItem('ses_token')
 export const setToken = (t) => localStorage.setItem('ses_token', t)
 export const clearToken = () => localStorage.removeItem('ses_token')
@@ -11,7 +11,7 @@ export const clearUser = () => localStorage.removeItem('ses_user')
 const authHeader = () => ({ Authorization: `Bearer ${getToken()}` })
 const jsonHeader = () => ({ 'Content-Type': 'application/json', ...authHeader() })
 
-// ─── Auth ────────────────────────────────────────────────────────
+// ─── Auth ─────────────────────────────────────────────────────────
 export async function login(username, password) {
   const fd = new FormData()
   fd.append('username', username)
@@ -34,7 +34,7 @@ export async function register(username, email, password) {
   return res.json()
 }
 
-// ─── Posts ───────────────────────────────────────────────────────
+// ─── Posts ────────────────────────────────────────────────────────
 export async function getFeed() {
   const res = await fetch(`${BASE}/posts/feed`)
   if (!res.ok) throw new Error('Failed to load feed')
@@ -59,7 +59,7 @@ export async function deletePost(id) {
   if (!res.ok) throw new Error('Failed to delete post')
 }
 
-// ─── Likes ───────────────────────────────────────────────────────
+// ─── Likes ────────────────────────────────────────────────────────
 export async function toggleLike(postId) {
   const res = await fetch(`${BASE}/posts/${postId}/like/`, {
     method: 'POST',
@@ -69,7 +69,7 @@ export async function toggleLike(postId) {
   return res.json()
 }
 
-// ─── Comments ────────────────────────────────────────────────────
+// ─── Comments ─────────────────────────────────────────────────────
 export async function getComments(postId) {
   const res = await fetch(`${BASE}/posts/${postId}/comments/`)
   if (!res.ok) throw new Error('Failed to load comments')
@@ -94,7 +94,7 @@ export async function deleteComment(postId, commentId) {
   if (!res.ok) throw new Error('Failed to delete comment')
 }
 
-// ─── Users ───────────────────────────────────────────────────────
+// ─── Users ────────────────────────────────────────────────────────
 export async function getProfile(username) {
   const res = await fetch(`${BASE}/users/${username}`)
   if (!res.ok) throw new Error('User not found')
@@ -107,16 +107,14 @@ export async function getUserPosts(username) {
   return res.json()
 }
 
-// Fetch all users to show in the People tab
+// PUBLIC — no token needed
 export async function getAllUsers() {
-  const res = await fetch(`${BASE}/users/`, {
-    headers: authHeader(),
-  })
+  const res = await fetch(`${BASE}/users/`)
   if (!res.ok) throw new Error('Failed to load users')
   return res.json()
 }
 
-// Follow / unfollow toggle — returns { following, follower_count, message }
+// Requires auth — toggles follow/unfollow
 export async function followUser(username) {
   const res = await fetch(`${BASE}/users/${username}/follow`, {
     method: 'POST',
@@ -126,7 +124,6 @@ export async function followUser(username) {
   return res.json()
 }
 
-// Get followers count for a user
 export async function getFollowers(username) {
   const res = await fetch(`${BASE}/users/${username}/followers`)
   if (!res.ok) return []

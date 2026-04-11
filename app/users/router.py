@@ -27,25 +27,20 @@ def register(payload: UserCreate, db: Session = Depends(get_db)):
     return user
 
 
+# ── Fixed routes MUST come before /{username} ─────────────────────────────────
+
+@router.get("/", response_model=list[UserOut])
+def list_users(db: Session = Depends(get_db)):
+    """Return all users — public, no auth required."""
+    return db.query(User).order_by(User.created_at.desc()).all()
+
+
 @router.get("/me", response_model=UserOut)
 def get_me(current_user: User = Depends(get_current_user)):
     return current_user
 
 
-@router.get("/", response_model=list[UserOut])
-def list_users(
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    """Return all users except the currently logged-in one."""
-    users = (
-        db.query(User)
-        .filter(User.id != current_user.id)
-        .order_by(User.created_at.desc())
-        .all()
-    )
-    return users
-
+# ── Dynamic /{username} routes AFTER fixed ones ────────────────────────────────
 
 @router.get("/{username}", response_model=UserOut)
 def get_user_profile(username: str, db: Session = Depends(get_db)):
