@@ -16,7 +16,6 @@ def register(payload: UserCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Username already taken")
     if db.query(User).filter(User.email == payload.email).first():
         raise HTTPException(status_code=400, detail="Email already registered")
-
     user = User(
         username=payload.username,
         email=payload.email,
@@ -33,6 +32,21 @@ def get_me(current_user: User = Depends(get_current_user)):
     return current_user
 
 
+@router.get("/", response_model=list[UserOut])
+def list_users(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Return all users except the currently logged-in one."""
+    users = (
+        db.query(User)
+        .filter(User.id != current_user.id)
+        .order_by(User.created_at.desc())
+        .all()
+    )
+    return users
+
+
 @router.get("/{username}", response_model=UserOut)
 def get_user_profile(username: str, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.username == username).first()
@@ -46,7 +60,6 @@ def get_user_posts(username: str, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.username == username).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-
     posts = (
         db.query(Post)
         .filter(Post.user_id == user.id)
@@ -65,7 +78,6 @@ def follow_user(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Follow a user. If already following, unfollow (toggle)."""
     target = db.query(User).filter(User.username == username).first()
     if not target:
         raise HTTPException(status_code=404, detail="User not found")
@@ -77,25 +89,17 @@ def follow_user(
         Follow.followed_id == target.id,
     ).first()
 
+    db.refresh(target)
+    count = len(target.followers)
+
     if existing:
-        # Unfollow
         db.delete(existing)
         db.commit()
-        return FollowOut(
-            following=False,
-            follower_count=len(target.followers) - 1,
-            message=f"Unfollowed @{username}",
-        )
+        return FollowOut(following=False, follower_count=max(0, count - 1), message=f"Unfollowed @{username}")
     else:
-        # Follow
-        follow = Follow(follower_id=current_user.id, followed_id=target.id)
-        db.add(follow)
+        db.add(Follow(follower_id=current_user.id, followed_id=target.id))
         db.commit()
-        return FollowOut(
-            following=True,
-            follower_count=len(target.followers) + 1,
-            message=f"Now following @{username}",
-        )
+        return FollowOut(following=True, follower_count=count + 1, message=f"Now following @{username}")
 
 
 @router.get("/{username}/followers", response_model=list[UserOut])

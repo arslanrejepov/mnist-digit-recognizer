@@ -1,3 +1,11 @@
+
+
+.followPill.following {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.55);
+}
+
 .panel {
   border-left: 1px solid var(--border);
   background: var(--surface);

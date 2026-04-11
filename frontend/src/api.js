@@ -8,14 +8,8 @@ export const getUser = () => localStorage.getItem('ses_user')
 export const setUser = (u) => localStorage.setItem('ses_user', u)
 export const clearUser = () => localStorage.removeItem('ses_user')
 
-const authHeader = () => ({
-  Authorization: `Bearer ${getToken()}`,
-})
-
-const jsonHeader = () => ({
-  'Content-Type': 'application/json',
-  ...authHeader(),
-})
+const authHeader = () => ({ Authorization: `Bearer ${getToken()}` })
+const jsonHeader = () => ({ 'Content-Type': 'application/json', ...authHeader() })
 
 // ─── Auth ────────────────────────────────────────────────────────
 export async function login(username, password) {
@@ -24,7 +18,7 @@ export async function login(username, password) {
   fd.append('password', password)
   const res = await fetch(`${BASE}/auth/login`, { method: 'POST', body: fd })
   if (!res.ok) throw new Error('Invalid credentials')
-  return res.json() // { access_token, token_type }
+  return res.json()
 }
 
 export async function register(username, email, password) {
@@ -110,5 +104,31 @@ export async function getProfile(username) {
 export async function getUserPosts(username) {
   const res = await fetch(`${BASE}/users/${username}/posts`)
   if (!res.ok) throw new Error('Failed to load user posts')
+  return res.json()
+}
+
+// Fetch all users to show in the People tab
+export async function getAllUsers() {
+  const res = await fetch(`${BASE}/users/`, {
+    headers: authHeader(),
+  })
+  if (!res.ok) throw new Error('Failed to load users')
+  return res.json()
+}
+
+// Follow / unfollow toggle — returns { following, follower_count, message }
+export async function followUser(username) {
+  const res = await fetch(`${BASE}/users/${username}/follow`, {
+    method: 'POST',
+    headers: authHeader(),
+  })
+  if (!res.ok) throw new Error('Follow failed')
+  return res.json()
+}
+
+// Get followers count for a user
+export async function getFollowers(username) {
+  const res = await fetch(`${BASE}/users/${username}/followers`)
+  if (!res.ok) return []
   return res.json()
 }
