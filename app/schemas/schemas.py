@@ -1,5 +1,6 @@
 # app/schemas/schemas.py
 from datetime import datetime
+from typing import Optional
 from pydantic import BaseModel, EmailStr, field_validator
 
 
@@ -7,7 +8,6 @@ from pydantic import BaseModel, EmailStr, field_validator
 class Token(BaseModel):
     access_token: str
     token_type: str = "bearer"
-
 
 class TokenData(BaseModel):
     user_id: int | None = None
@@ -26,12 +26,14 @@ class UserCreate(BaseModel):
             raise ValueError("Username must be alphanumeric (underscores allowed)")
         return v
 
-
 class UserOut(BaseModel):
     id: int
     username: str
     email: str
+    avatar_url: Optional[str] = None
     created_at: datetime
+    follower_count:  int = 0
+    following_count: int = 0
 
     model_config = {"from_attributes": True}
 
@@ -54,14 +56,15 @@ class PostCreate(BaseModel):
             raise ValueError("Post content cannot be empty")
         return v
 
-
 class PostOut(BaseModel):
     id: int
     content: str
-    created_at: datetime
-    user_id: int
-    author: UserOut
-    like_count: int = 0
+    audio_url:   Optional[str] = None
+    image_url:   Optional[str] = None
+    created_at:  datetime
+    user_id:     int
+    author:      UserOut
+    like_count:  int = 0
     comment_count: int = 0
 
     model_config = {"from_attributes": True}
@@ -78,7 +81,6 @@ class CommentCreate(BaseModel):
             raise ValueError("Comment content cannot be empty")
         return v
 
-
 class CommentOut(BaseModel):
     id: int
     content: str
@@ -89,11 +91,9 @@ class CommentOut(BaseModel):
 
     model_config = {"from_attributes": True}
 
-
 class CommentResponse(BaseModel):
     id: int
     content: str
-
     model_config = {"from_attributes": True}
 
 

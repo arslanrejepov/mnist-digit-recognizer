@@ -1,11 +1,12 @@
 const BASE = '/api'
+export const STATIC = 'http://localhost:8000'
 
 // ─── Token helpers ────────────────────────────────────────────────
-export const getToken = () => localStorage.getItem('ses_token')
-export const setToken = (t) => localStorage.setItem('ses_token', t)
+export const getToken  = () => localStorage.getItem('ses_token')
+export const setToken  = (t) => localStorage.setItem('ses_token', t)
 export const clearToken = () => localStorage.removeItem('ses_token')
-export const getUser = () => localStorage.getItem('ses_user')
-export const setUser = (u) => localStorage.setItem('ses_user', u)
+export const getUser   = () => localStorage.getItem('ses_user')
+export const setUser   = (u) => localStorage.setItem('ses_user', u)
 export const clearUser = () => localStorage.removeItem('ses_user')
 
 const authHeader = () => ({ Authorization: `Bearer ${getToken()}` })
@@ -27,10 +28,7 @@ export async function register(username, email, password) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ username, email, password }),
   })
-  if (!res.ok) {
-    const err = await res.json()
-    throw new Error(err.detail || 'Registration failed')
-  }
+  if (!res.ok) { const e = await res.json(); throw new Error(e.detail || 'Registration failed') }
   return res.json()
 }
 
@@ -52,19 +50,12 @@ export async function createPost(content) {
 }
 
 export async function deletePost(id) {
-  const res = await fetch(`${BASE}/posts/${id}`, {
-    method: 'DELETE',
-    headers: authHeader(),
-  })
-  if (!res.ok) throw new Error('Failed to delete post')
+  await fetch(`${BASE}/posts/${id}`, { method: 'DELETE', headers: authHeader() })
 }
 
 // ─── Likes ────────────────────────────────────────────────────────
 export async function toggleLike(postId) {
-  const res = await fetch(`${BASE}/posts/${postId}/like/`, {
-    method: 'POST',
-    headers: authHeader(),
-  })
+  const res = await fetch(`${BASE}/posts/${postId}/like/`, { method: 'POST', headers: authHeader() })
   if (!res.ok) throw new Error('Like failed')
   return res.json()
 }
@@ -78,20 +69,10 @@ export async function getComments(postId) {
 
 export async function addComment(postId, content) {
   const res = await fetch(`${BASE}/posts/${postId}/comments/`, {
-    method: 'POST',
-    headers: jsonHeader(),
-    body: JSON.stringify({ content }),
+    method: 'POST', headers: jsonHeader(), body: JSON.stringify({ content }),
   })
   if (!res.ok) throw new Error('Failed to post comment')
   return res.json()
-}
-
-export async function deleteComment(postId, commentId) {
-  const res = await fetch(`${BASE}/posts/${postId}/comments/${commentId}`, {
-    method: 'DELETE',
-    headers: authHeader(),
-  })
-  if (!res.ok) throw new Error('Failed to delete comment')
 }
 
 // ─── Users ────────────────────────────────────────────────────────
@@ -107,19 +88,14 @@ export async function getUserPosts(username) {
   return res.json()
 }
 
-// PUBLIC — no token needed
 export async function getAllUsers() {
   const res = await fetch(`${BASE}/users/`)
   if (!res.ok) throw new Error('Failed to load users')
   return res.json()
 }
 
-// Requires auth — toggles follow/unfollow
 export async function followUser(username) {
-  const res = await fetch(`${BASE}/users/${username}/follow`, {
-    method: 'POST',
-    headers: authHeader(),
-  })
+  const res = await fetch(`${BASE}/users/${username}/follow`, { method: 'POST', headers: authHeader() })
   if (!res.ok) throw new Error('Follow failed')
   return res.json()
 }
@@ -128,4 +104,51 @@ export async function getFollowers(username) {
   const res = await fetch(`${BASE}/users/${username}/followers`)
   if (!res.ok) return []
   return res.json()
+}
+
+export async function getFollowing(username) {
+  const res = await fetch(`${BASE}/users/${username}/following`)
+  if (!res.ok) return []
+  return res.json()
+}
+
+// ─── Uploads ──────────────────────────────────────────────────────
+
+// Upload profile avatar — file is a File object from <input type="file">
+export async function uploadAvatar(file) {
+  const fd = new FormData()
+  fd.append('file', file)
+  const res = await fetch(`${BASE}/uploads/avatar`, {
+    method: 'POST',
+    headers: authHeader(),
+    body: fd,
+  })
+  if (!res.ok) { const e = await res.json(); throw new Error(e.detail || 'Upload failed') }
+  return res.json() // { avatar_url }
+}
+
+// Upload image for a post
+export async function uploadPostImage(postId, file) {
+  const fd = new FormData()
+  fd.append('file', file)
+  const res = await fetch(`${BASE}/uploads/post/${postId}/image`, {
+    method: 'POST',
+    headers: authHeader(),
+    body: fd,
+  })
+  if (!res.ok) { const e = await res.json(); throw new Error(e.detail || 'Upload failed') }
+  return res.json() // { image_url }
+}
+
+// Upload audio for a post
+export async function uploadPostAudio(postId, file) {
+  const fd = new FormData()
+  fd.append('file', file)
+  const res = await fetch(`${BASE}/uploads/post/${postId}/audio`, {
+    method: 'POST',
+    headers: authHeader(),
+    body: fd,
+  })
+  if (!res.ok) { const e = await res.json(); throw new Error(e.detail || 'Upload failed') }
+  return res.json() // { audio_url }
 }

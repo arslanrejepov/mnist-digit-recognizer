@@ -10,6 +10,13 @@ from app.auth.auth import hash_password, get_current_user
 router = APIRouter(prefix="/users", tags=["Users"])
 
 
+def _attach_counts(user: User) -> User:
+    """Attach follower/following counts as plain attributes for Pydantic."""
+    user.follower_count  = len(user.followers)
+    user.following_count = len(user.following)
+    return user
+
+
 @router.post("/register", response_model=UserOut, status_code=status.HTTP_201_CREATED)
 def register(payload: UserCreate, db: Session = Depends(get_db)):
     if db.query(User).filter(User.username == payload.username).first():
@@ -24,30 +31,30 @@ def register(payload: UserCreate, db: Session = Depends(get_db)):
     db.add(user)
     db.commit()
     db.refresh(user)
-    return user
+    return _attach_counts(user)
 
 
-# ── Fixed routes MUST come before /{username} ─────────────────────────────────
+# ── Fixed routes BEFORE /{username} ───────────────────────────────
 
 @router.get("/", response_model=list[UserOut])
 def list_users(db: Session = Depends(get_db)):
-    """Return all users — public, no auth required."""
-    return db.query(User).order_by(User.created_at.desc()).all()
+    users = db.query(User).order_by(User.created_at.desc()).all()
+    return [_attach_counts(u) for u in users]
 
 
 @router.get("/me", response_model=UserOut)
 def get_me(current_user: User = Depends(get_current_user)):
-    return current_user
+    return _attach_counts(current_user)
 
 
-# ── Dynamic /{username} routes AFTER fixed ones ────────────────────────────────
+# ── Dynamic routes ─────────────────────────────────────────────────
 
 @router.get("/{username}", response_model=UserOut)
 def get_user_profile(username: str, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.username == username).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    return user
+    return _attach_counts(user)
 
 
 @router.get("/{username}/posts", response_model=list[PostOut])
@@ -62,8 +69,9 @@ def get_user_posts(username: str, db: Session = Depends(get_db)):
         .all()
     )
     for post in posts:
-        post.like_count = len(post.likes)
+        post.like_count    = len(post.likes)
         post.comment_count = len(post.comments)
+        _attach_counts(post.author)
     return posts
 
 
@@ -102,7 +110,7 @@ def get_followers(username: str, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.username == username).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    return [f.follower for f in user.followers]
+    return [_attach_counts(f.follower) for f in user.followers]
 
 
 @router.get("/{username}/following", response_model=list[UserOut])
@@ -110,4 +118,4 @@ def get_following(username: str, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.username == username).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    return [f.followed for f in user.following]
+    return [_attach_counts(f.followed) for f in user.following]
