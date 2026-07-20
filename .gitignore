@@ -1,47 +1,16 @@
-# Python virtual environments
-.venv/
-env/
 venv/
-ENV/
-
-# Byte-compiled / optimized / DLL files
 __pycache__/
-*.py[cod]
-*.class
+*.pyc
 
-# Distribution / packaging
-build/
-dist/
-*.egg-info/
-*.egg
-*.whl
-
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
-
-# Pytest
-.pytest_cache/
-
-# Jupyter notebooks
-.ipynb_checkpoints/
-
-# IDE/editor settings
-.vscode/
-
-# Logs and runtime files
-*.log
-
-# OS generated files
-.DS_Store
-Thumbs.db
-
-# TensorFlow / model artifacts
-*.h5
-*.ckpt
-*.pb
-saved_model/
-
-# Project output directories
+data/
 checkpoints/
 results/
+*.h5
+*.keras
+
+.ipynb_checkpoints/
+
+.env
+kaggle.json
+
+.DS_Store
