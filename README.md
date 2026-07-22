@@ -46,7 +46,6 @@ This project isn't about chasing a leaderboard score — it's about **building a
 │ ├── app.py # 🌐 Flask server
 │ ├── interface.py # ⚙️ Inference logic
 │ └── templates/index.html # 🎨 Draw-a-digit UI
-├── 📁 notebooks/eda.ipynb # 🔍 Exploratory analysis
 ├── 📁 checkpoints/ # 💾 Saved model
 ├── 📁 results/ # 📈 Predictions & metrics
 └── requirements.txt
@@ -105,3 +104,9 @@ python app/app.py
 Made with 🧠 + ☕ while learning deep learning, one layer at a time.
 
 </div>
+
+---
+
+## 🤖 Built with AI assistance
+
+This project was developed with mentorship-style guidance from **Claude (Anthropic)** — used for step-by-step learning, code review, and debugging throughout the pipeline.
