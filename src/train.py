@@ -24,3 +24,5 @@ history = model.fit(
     epochs=10,
     batch_size = 32
 )
+
+model.save(ROOT / "checkpoints" / "model.keras")
