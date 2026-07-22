@@ -32,6 +32,7 @@ This project isn't about chasing a leaderboard score — it's about **building a
 </div>
 
 ---
+```
 
 ## 🗂️ Project structure
 
@@ -50,6 +51,7 @@ This project isn't about chasing a leaderboard score — it's about **building a
 ├── 📁 results/ # 📈 Predictions & metrics
 └── requirements.txt
 
+```
 
 ---
 
